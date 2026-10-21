@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kick çekiliş stüdyosu</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0e3a5c;--deep:#2f8bc9;--sky:#7cc0ee;--line:rgba(255,255,255,.9);color-scheme:light}
+*{box-sizing:border-box;margin:0}
+body{font-family:'Bricolage Grotesque',system-ui,sans-serif;color:var(--ink);min-height:100vh;padding:20px;background:linear-gradient(125deg,#e8f6ff,#bfe3fa,#f1faff,#9fd3f5,#d4ecfc,#b3dcf8,#e8f6ff);background-size:500% 500%;animation:bgm var(--bgs,20s) ease-in-out infinite}
+header{display:flex;justify-content:space-between;align-items:center;max-width:1400px;margin:0 auto 18px}
+.logo{display:flex;align-items:center;gap:12px;font-size:26px;font-weight:800;letter-spacing:-.03em}
+.logo i{width:38px;height:38px;border-radius:14px 14px 14px 4px;background:linear-gradient(135deg,#b5e1fb,#4aa8e6);box-shadow:0 8px 18px -6px rgba(47,139,201,.7)}
+.pill{display:flex;align-items:center;gap:8px;background:#fff;padding:9px 16px;border-radius:999px;font-weight:600;font-size:14px;box-shadow:0 8px 20px -10px rgba(47,139,201,.6)}
+.dot{width:10px;height:10px;border-radius:50%;background:#a9bdcc}.dot.ok{background:#3ccf91}.dot.wait{background:#f6c344}.dot.bad{background:#ef6b6b}
+.grid{display:grid;grid-template-columns:290px 1fr 310px;gap:18px;max-width:1400px;margin:auto}
+.card{background:rgba(255,255,255,.62);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:0 24px 60px -24px rgba(47,139,201,.4)}
+.stage{border-radius:34px;text-align:center}
+h2{font-size:17px;font-weight:700;margin:18px 0 10px}h2:first-child{margin-top:0}
+input[type=text],input[type=number],select,textarea{width:100%;padding:11px 14px;border:1px solid #cfe6f7;border-radius:12px;background:#fff;font:inherit;color:var(--ink);margin-bottom:8px}
+input:focus,button:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+.chk{display:flex;gap:9px;align-items:center;font-size:14px;margin:7px 0;cursor:pointer}.chk input{accent-color:var(--deep);width:17px;height:17px}
+.btn{border:0;border-radius:14px;padding:11px 16px;font:inherit;font-weight:700;color:#fff;cursor:pointer;background:linear-gradient(135deg,#9bd5f8,#3f9fe0);box-shadow:0 10px 20px -10px rgba(47,139,201,.9)}
+.btn.soft{background:#fff;color:var(--deep);box-shadow:none;border:1px solid #cfe6f7}
+.btn:disabled{opacity:.5;cursor:wait}.row{display:flex;gap:8px}.row .btn{flex:1}
+.note{font-size:13px;color:#4b7a9c;line-height:1.45;margin-top:8px}.note[hidden]{display:none}
+.tabs{display:inline-flex;gap:4px;background:rgba(255,255,255,.75);padding:6px;border-radius:999px;flex-wrap:wrap;justify-content:center}
+.tabs button{border:0;background:none;padding:10px 18px;border-radius:999px;font:inherit;font-weight:600;color:var(--ink);cursor:pointer;transition:.25s}
+.tabs .on{background:linear-gradient(135deg,#9bd5f8,#3f9fe0);color:#fff;box-shadow:0 8px 16px -8px rgba(47,139,201,.9)}
+#view{min-height:580px;display:grid;place-items:center;padding:34px 0 22px}
+#go{font-size:20px;padding:16px 44px;border-radius:20px}
+#msg{height:20px;margin-top:10px;font-size:14px;color:var(--deep);font-weight:600}
+ul{list-style:none;padding:0}li{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;font-size:15px}
+#plist{max-height:300px;overflow:auto}#plist li{cursor:pointer}#plist li:hover{background:#eaf6ff}
+li i{width:9px;height:9px;border-radius:50%;flex:none}li span{margin-left:auto;font-size:12px;color:#6d97b5}.empty{color:#6d97b5;font-size:14px}
+.count{font-size:46px;font-weight:800;letter-spacing:-.04em;line-height:1}
+#feed{height:190px;overflow:auto;font-size:14px;line-height:1.4}#feed p{padding:3px 0;word-break:break-word}
+.ww{position:relative;width:min(520px,86vw)}
+.ww canvas{width:100%;height:auto;display:block;border-radius:50%;box-shadow:0 30px 70px -25px rgba(47,139,201,.7),0 0 0 10px #fff}
+.ww::after{content:'';position:absolute;left:50%;top:50%;width:72px;height:72px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);box-shadow:0 6px 18px rgba(47,139,201,.4),inset 0 0 0 9px #bfe3fa}
+.pin{position:absolute;top:-24px;left:50%;transform:translateX(-50%);border:17px solid transparent;border-top:36px solid var(--deep);border-bottom:0;z-index:2;filter:drop-shadow(0 4px 4px rgba(14,58,92,.3))}
+.slot{width:min(640px,92%);padding:70px 24px;border-radius:38px;background:linear-gradient(160deg,#fff,#d6eeff);box-shadow:inset 0 0 0 2px #fff,0 30px 60px -30px rgba(47,139,201,.6)}
+.slot small{display:block;color:var(--deep);font-weight:600}.slot b{display:block;margin-top:10px;min-height:1.2em;font-size:clamp(34px,7vw,72px);letter-spacing:-.03em;word-break:break-word}.slot b.fin{color:var(--deep)}
+.boxes{display:grid;grid-template-columns:repeat(3,auto);gap:18px;justify-content:center}
+.box{width:min(150px,26vw);height:min(150px,26vw);border:0;border-radius:28px;background:linear-gradient(145deg,#fff,#cfe9fb);font:inherit;font-size:58px;color:var(--ink);display:grid;place-items:center;box-shadow:0 18px 30px -14px rgba(47,139,201,.6);transition:.4s}
+.box b{font-size:19px;padding:0 8px;word-break:break-word}.box.win{background:linear-gradient(145deg,#8fd0f7,#2f8bc9);color:#fff;transform:scale(1.12)}.box.lose{opacity:.45}
+.shake{animation:sh .3s infinite}@keyframes sh{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg) translateY(-6px)}75%{transform:rotate(8deg) translateY(-6px)}}
+.chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:660px}
+.chip{padding:10px 18px;border-radius:999px;background:#fff;font-weight:600;box-shadow:0 8px 16px -10px rgba(47,139,201,.7);transition:.45s}
+.chip.out{opacity:0;transform:scale(.3)}.chip.win{background:linear-gradient(135deg,#8fd0f7,#2f8bc9);color:#fff;transform:scale(1.5);margin:14px}
+.scr{position:relative;width:min(640px,94%);aspect-ratio:640/300;border-radius:30px;overflow:hidden;box-shadow:0 30px 60px -30px rgba(47,139,201,.7)}
+.under{position:absolute;inset:0;display:grid;place-content:center;background:linear-gradient(160deg,#fff,#d6eeff)}.under small{color:var(--deep);font-weight:600}
+.under b{font-size:clamp(30px,6vw,60px);letter-spacing:-.03em;word-break:break-word;padding:0 16px}
+.scr canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.modal{position:fixed;inset:0;background:rgba(14,58,92,.35);backdrop-filter:blur(6px);display:grid;place-items:center;z-index:9}.modal[hidden]{display:none}
+.mbox{background:#fff;border-radius:34px;padding:44px 60px;text-align:center;box-shadow:0 40px 80px -20px rgba(14,58,92,.5);max-width:92vw}
+.mbox b{display:block;font-size:clamp(34px,6vw,64px);letter-spacing:-.03em;margin:8px 0 26px;word-break:break-word;color:var(--deep)}
+.cf{position:fixed;top:-20px;width:10px;height:16px;border-radius:3px;z-index:10;animation:fall linear forwards}@keyframes fall{to{transform:translateY(105vh) rotate(720deg)}}
+@media(max-width:1100px){.grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.cf{display:none}.shake{animation:none}body,body::before,body::after{animation:none}}
+.hr{display:flex;gap:10px;align-items:center}.mc{color:#6d97b5;font-weight:600;padding-left:10px;border-left:1px solid #d5e8f6}.mc b{color:var(--ink)}
+body::before,body::after{content:'';position:fixed;z-index:-1;width:60vmax;height:60vmax;border-radius:50%;filter:blur(70px);opacity:.55;pointer-events:none;animation:drift calc(var(--bgs,20s)*1.3) ease-in-out infinite alternate}
+body::before{left:-15vmax;top:-20vmax;background:radial-gradient(circle,#fff,transparent 65%)}
+body::after{right:-20vmax;bottom:-25vmax;background:radial-gradient(circle,#7cc0ee,transparent 65%);animation-direction:alternate-reverse}
+@keyframes bgm{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(18vmax,12vmax) scale(1.25)}}
+body.still,body.still::before,body.still::after{animation:none}
+input[type=range]{width:100%;accent-color:var(--deep);margin-top:8px}textarea{resize:vertical}
+.sbox{text-align:left;padding:30px;max-height:92vh;overflow:auto;width:min(980px,94vw)}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin:6px 0 22px}.sg h3{font-size:15px;color:var(--deep);margin-bottom:14px}
+.sg label{display:block;font-size:13px;font-weight:600;margin:0 0 12px}.sg label input[type=text],.sg label input[type=number],.sg label select,.sg label textarea{margin:6px 0 0;font-weight:400}
+.sg .chk{display:flex;font-size:14px;font-weight:500}.sg .chk input{margin:0;width:17px}
+@media(max-width:900px){.sg{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><i></i>Çekiliş stüdyosu</div>
+  <div class="hr"><div class="pill"><span class="dot off" id="dot"></span><span id="st">Bağlı değil</span><span class="mc"><b id="nm">0</b> mesaj</span></div><button class="btn" id="sb">Ayarlar</button></div>
+</header>
+
+<div class="grid">
+  <aside class="card">
+    <h2>Kick bağlantısı</h2>
+    <input type="text" id="slug" placeholder="Kanal adı (ör. kanalim)">
+    <input type="text" id="room" placeholder="Chatroom ID (isteğe bağlı)">
+    <div class="row"><button class="btn" id="bc">Chat'e bağlan</button><button class="btn soft" id="bd">Kes</button></div>
+    <button class="btn soft" id="demo" style="width:100%;margin-top:8px">Demo chat'i dene</button>
+    <p class="note" id="hint" hidden>Kick, kanal bilgisini başka bir siteden isteyen sayfaya vermiyor. 1) <a id="hl" target="_blank" rel="noopener">Bu bağlantıyı yeni sekmede aç</a> 2) Açılan yazının hepsini kopyala (Ctrl+A, Ctrl+C) 3) Yukarıdaki Chatroom ID kutusuna yapıştırıp tekrar bağlan. Sadece sayıyı yazmak da yeterli.</p>
+
+    <h2>Katılım kuralı</h2>
+    <select data-s="mode"><option value="all">Chat'te yazan herkes katılır</option><option value="kw">Anahtar kelimeyi yazan katılır</option></select>
+    <div id="kwbox"><input type="text" data-s="kw" placeholder="Anahtar kelime (ör. !çekiliş)"></div>
+    <p class="note">Tüm chat okunur, katılımcı sayısında sınır yok. Diğer kurallar Ayarlar'da.</p>
+
+    <h2>Kazananlar</h2>
+    <ul id="wlist"></ul>
+  </aside>
+
+  <main class="card stage">
+    <div class="tabs" id="tabs"></div>
+    <div id="view"></div>
+    <button class="btn" id="go">Çekilişi başlat</button>
+    <div id="msg"></div>
+  </main>
+
+  <aside class="card">
+    <h2>Katılımcılar</h2>
+    <div class="row" style="align-items:center;margin-bottom:10px"><div class="count" id="cnt">0</div><button class="btn soft" id="clr" style="flex:none">Havuzu temizle</button></div>
+    <input type="text" id="ps" placeholder="Katılımcı ara"><ul id="plist"></ul>
+    <h2>Canlı chat</h2>
+    <div id="feed"></div>
+  </aside>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="mbox"><div id="wl">Kazanan</div><b id="wn"></b><button class="btn" id="ok">Harika</button></div>
+</div>
+
+<div class="modal" id="sm" hidden>
+ <div class="mbox sbox">
+  <h2>Ayarlar</h2>
+  <div class="sg">
+   <section><h3>Katılım</h3>
+    <label>Anahtar kelime eşleşmesi<select data-s="match"><option value="start">Mesaj kelimeyle başlasın</option><option value="exact">Mesaj tam olarak kelime olsun</option></select></label>
+    <label>Katılmak için en az mesaj sayısı<input type="number" min="1" max="50" data-s="minMsg"></label>
+    <label>Abonelere şans çarpanı<input type="number" min="1" max="10" data-s="luck"></label>
+    <label>Hariç tutulan hesaplar (bot vb.)<input type="text" data-s="bots"></label>
+    <label class="chk"><input type="checkbox" data-s="subo">Sadece aboneler</label>
+    <label class="chk"><input type="checkbox" data-s="modx">Moderatörleri hariç tut</label>
+    <label class="chk"><input type="checkbox" data-s="owx">Kanal sahibini hariç tut</label>
+    <label class="chk"><input type="checkbox" data-s="rm">Kazananı havuzdan çıkar</label>
+   </section>
+   <section><h3>Çekiliş</h3>
+    <label>Kazanan sayısı<input type="number" min="1" max="20" data-s="wins"></label>
+    <label>Çarkta gösterilen isim sayısı<input type="number" min="4" max="60" data-s="wseg"></label>
+    <label>Elemede gösterilen isim sayısı<input type="number" min="4" max="80" data-s="rseg"></label>
+    <label>Kutu sayısı<input type="number" min="3" max="9" data-s="bnum"></label>
+    <label>Animasyon hızı<select data-s="spd"><option value="0.6">Hızlı</option><option value="1">Normal</option><option value="1.6">Yavaş, gerilimli</option></select></label>
+   </section>
+   <section><h3>Görünüm ve liste</h3>
+    <label>Arka plan geçiş süresi (saniye)<input type="range" min="6" max="60" data-s="bgs"></label>
+    <label class="chk"><input type="checkbox" data-s="bg">Arka plan animasyonu açık</label>
+    <label>Elle katılımcı ekle (her satıra bir isim)<textarea id="addt" rows="3"></textarea></label>
+    <div class="row"><button class="btn soft" id="addn">Ekle</button><button class="btn soft" id="dl">Listeyi indir</button></div>
+    <div class="row" style="margin-top:8px"><button class="btn soft" id="clr2">Havuzu temizle</button><button class="btn soft" id="cw">Kazananları sıfırla</button></div>
+   </section>
+  </div>
+  <button class="btn" id="sx">Kapat</button>
+ </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),T=ms=>new Promise(r=>setTimeout(r,ms));
+const rnd=n=>crypto.getRandomValues(new Uint32Array(1))[0]%n;
+const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pool=new Map(),won=new Set(),winners=[];
+let mode='wheel',busy=false,ws=null,want=false,demoT=null,rq=0;
+const D={mode:'all',kw:'',match:'start',minMsg:1,luck:1,bots:'nightbot, botrix, streamelements, moobot, kickbot',subo:0,modx:0,owx:1,rm:1,wins:1,wseg:16,rseg:30,bnum:6,spd:1,bgs:20,bg:1};
+let S={...D};try{Object.assign(S,JSON.parse(localStorage.getItem('kc_s')||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem('kc_s',JSON.stringify(S))}catch(e){}};
+function apply(){document.body.style.setProperty('--bgs',(+S.bgs||20)+'s');document.body.classList.toggle('still',!S.bg);$('#kwbox').hidden=S.mode!=='kw'}
+const val=el=>el.type==='checkbox'?+el.checked:(el.type==='range'||el.type==='number')?(+el.value||1):(el.tagName==='SELECT'&&el.value!==''&&!isNaN(el.value))?+el.value:el.value;
+document.querySelectorAll('[data-s]').forEach(el=>{const k=el.dataset.s;el.type==='checkbox'?el.checked=!!+S[k]:el.value=S[k];el.addEventListener('input',()=>{S[k]=val(el);save();apply()})});
+const W=ms=>T(ms*S.spd);
+const lim=()=>({wheel:+S.wseg,roulette:30,boxes:+S.bnum,elim:+S.rseg,scratch:1})[mode]||1;
+const pick=a=>{const L=Math.round(+S.luck)||1;if(L<=1)return a[rnd(a.length)];const w=a.map(u=>u.sub?L:1),t=w.reduce((x,y)=>x+y,0);let r=rnd(t*100)/100,i=0;while(i<a.length-1&&(r-=w[i])>=0)i++;return a[i]};
+
+/* ---------- kaydet / yükle ---------- */
+try{['slug','room'].forEach(k=>{const v=localStorage.getItem('kc_'+k);if(v!==null)$('#'+k).value=v;$('#'+k).addEventListener('input',e=>localStorage.setItem('kc_'+k,e.target.value))})}catch(e){}
+
+/* ---------- arayüz yardımcıları ---------- */
+const st=(t,c)=>{$('#st').textContent=t;$('#dot').className='dot '+c};
+const toast=t=>{$('#msg').textContent=t;setTimeout(()=>$('#msg').textContent='',3500)};
+function lists(){if(rq)return;rq=requestAnimationFrame(()=>{rq=0;
+  $('#cnt').textContent=pool.size;
+  const q=$('#ps').value.trim().toLowerCase();let a=[...pool.values()];if(q)a=a.filter(u=>u.name.toLowerCase().includes(q));
+  $('#plist').innerHTML=a.slice(-300).reverse().map(u=>`<li data-k="${esc(u.name.toLowerCase())}" title="Havuzdan çıkar"><i style="background:${esc(u.color)}"></i>${esc(u.name)}</li>`).join('')+(a.length>300?`<li class="empty">…ve ${a.length-300} kişi daha (aramayla bulabilirsin)</li>`:'')||'<li class="empty">Henüz katılımcı yok. Chat\'te yazılınca burada belirir.</li>';
+  $('#wlist').innerHTML=winners.map(w=>`<li><b>${esc(w.name)}</b><span>${w.t}</span></li>`).join('')||'<li class="empty">Kazananlar burada listelenir.</li>';
+})}
+function feed(n,c,t){const f=$('#feed');f.insertAdjacentHTML('beforeend',`<p><b style="color:${esc(c)}">${esc(n)}</b> ${esc(t)}</p>`);while(f.children.length>60)f.firstChild.remove();f.scrollTop=f.scrollHeight}
+$('#plist').onclick=e=>{const k=e.target.closest('li')?.dataset.k;if(k){pool.delete(k);lists()}};
+$('#clr').onclick=()=>{pool.clear();lists()};
+
+/* ---------- chat işleme ---------- */
+let nmsg=0;const seen=new Set(),cnts=new Map();
+function onChat(m){
+  if(m.id){if(seen.has(m.id))return;seen.add(m.id);if(seen.size>4000)seen.delete(seen.values().next().value)}
+  const id=m.sender.identity||{},b=(id.badges||[]).map(x=>x.type);
+  const u={name:m.sender.username,color:id.color||'#3f9fe0',sub:b.some(x=>['subscriber','founder','og'].includes(x))};
+  const text=String(m.content).replace(/\[emote:\d+:([^\]]+)\]/g,'$1').trim();
+  $('#nm').textContent=++nmsg;feed(u.name,u.color,text);
+  const k=u.name.toLowerCase();
+  if(pool.has(k)||won.has(k))return;
+  if(S.mode==='kw'&&S.kw.trim()){const w=S.kw.trim().toLowerCase(),t=text.toLowerCase();if(S.match==='exact'?t!==w:!t.startsWith(w))return}
+  if(S.owx&&b.includes('broadcaster'))return;
+  if(S.modx&&b.includes('moderator'))return;
+  if(S.subo&&!u.sub)return;
+  if(String(S.bots).toLowerCase().split(/[\s,]+/).includes(k))return;
+  const c=(cnts.get(k)||0)+1;cnts.set(k,c);if(c<S.minMsg)return;
+  pool.set(k,u);lists();
+}
+function disconnect(){want=false;clearInterval(demoT);if(ws){ws.onclose=null;ws.close();ws=null}st('Bağlı değil','off')}
+const pickId=t=>{t=String(t);const m=t.match(/"chatroom"\s*:\s*\{[^}]*?"id"\s*:\s*(\d+)/)||t.match(/^\s*(\d{3,})\s*$/);return m&&m[1]};
+async function grab(u){const c=new AbortController(),tm=setTimeout(()=>c.abort(),7000);try{return await(await fetch(u,{signal:c.signal})).text()}finally{clearTimeout(tm)}}
+async function findId(slug){
+  const u='https://kick.com/api/v2/channels/'+slug;
+  for(const f of [u,'https://corsproxy.io/?url='+encodeURIComponent(u),'https://api.allorigins.win/raw?url='+encodeURIComponent(u),'https://api.codetabs.com/v1/proxy?quest='+u]){
+    try{const id=pickId(await grab(f));if(id)return id}catch(e){}
+  }
+}
+async function connect(){
+  const slug=$('#slug').value.trim().toLowerCase().replace(/^.*kick\.com\//,'').replace(/[\/?#].*$/,'');
+  let id=pickId($('#room').value);
+  if(!slug&&!id)return st('Kanal adını yaz','bad');
+  disconnect();want=true;nmsg=0;$('#nm').textContent=0;$('#hint').hidden=true;
+  if(!id){st('Kanal aranıyor…','wait');id=await findId(slug);if(!want)return}
+  if(!id){want=false;st('Chatroom ID bulunamadı','bad');$('#hl').href='https://kick.com/api/v2/channels/'+slug;$('#hint').hidden=false;return}
+  st('Chat\'e bağlanılıyor…','wait');
+  const open=()=>{
+    ws=new WebSocket('wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=8.4.0-rc2&flash=false');
+    ws.onerror=()=>st('Bağlantı hatası: internetini kontrol et','bad');
+    ws.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(_){return}
+      if(d.event==='pusher:connection_established')['chatrooms.'+id+'.v2','chatrooms.'+id].forEach(c=>ws.send(JSON.stringify({event:'pusher:subscribe',data:{auth:'',channel:c}})));
+      else if(d.event==='pusher:ping')ws.send('{"event":"pusher:pong","data":{}}');
+      else if(d.event==='pusher_internal:subscription_succeeded')st('Chat canlı: '+(slug||'kanal')+' #'+id,'ok');
+      else if(/ChatMessageEvent$/.test(d.event)){try{onChat(typeof d.data==='string'?JSON.parse(d.data):d.data)}catch(_){}}};
+    ws.onclose=()=>{if(want){st('Yeniden bağlanıyor…','wait');setTimeout(()=>want&&open(),2500)}};
+  };open();
+}
+function demo(){
+  disconnect();nmsg=0;$('#nm').textContent=0;st('Demo chat çalışıyor','ok');
+  const N=['mavi','bulut','yildiz','deniz','poyraz','lodos','ada','efe','zeynep','kaan','melis','ege','defne','toprak','arda'],M=['!çekiliş','!çekiliş','selam','gg','!çekiliş 🎉','kolay gelsin','!çekiliş'];
+  demoT=setInterval(()=>onChat({sender:{username:N[rnd(N.length)]+rnd(99),identity:{color:`hsl(${200+rnd(40)} 70% 42%)`,badges:rnd(4)?[]:[{type:'subscriber'}]}},content:M[rnd(M.length)]}),550);
+}
+$('#bc').onclick=connect;$('#bd').onclick=disconnect;$('#demo').onclick=demo;
+
+/* ---------- çekiliş modları ---------- */
+const M={
+ wheel:{label:'Çarkıfelek',n:16,
+  setup(n){
+    $('#view').innerHTML='<div class="ww"><i class="pin"></i><canvas id="wc" width="600" height="600"></canvas></div>';
+    const x=$('#wc').getContext('2d'),k=n.length,sg=Math.PI*2/k;x.translate(300,300);
+    n.forEach((u,i)=>{const a=i*sg-Math.PI/2;
+      x.beginPath();x.moveTo(0,0);x.arc(0,0,296,a,a+sg);x.closePath();
+      x.fillStyle=(i===k-1&&k%2)?'#c0e4fa':(i%2?'#9fd3f5':'#e2f3ff');x.fill();x.strokeStyle='#fff';x.lineWidth=3;x.stroke();
+      x.save();x.rotate(a+sg/2);x.fillStyle='#0e3a5c';x.font=`600 ${k>40?11:k>28?14:k>20?18:26}px "Bricolage Grotesque",sans-serif`;x.textAlign='right';x.textBaseline='middle';
+      x.fillText(u.name.slice(0,14),268,0);x.restore()});
+  },
+  async run(w,n){
+    const c=$('#wc'),sg=360/n.length,i=n.indexOf(w),jit=(rnd(100)/100-.5)*sg*.6;
+    c.style.transition=`transform ${6.5*S.spd}s cubic-bezier(.1,.6,.05,1)`;void c.offsetWidth;
+    c.style.transform=`rotate(${360*7+360-(i+.5)*sg+jit}deg)`;await W(6800);
+  }},
+ roulette:{label:'Kura',n:30,
+  setup(){$('#view').innerHTML='<div class="slot"><small>Çekiliş adayı</small><b id="sn">Hazır</b></div>'},
+  async run(w,n){
+    for(let d=45;d<460;d*=1.07){$('#sn').textContent=n[rnd(n.length)].name;await W(d)}
+    $('#sn').textContent=w.name;$('#sn').classList.add('fin');await W(600);
+  }},
+ boxes:{label:'Sürpriz kutular',n:6,
+  setup(n){$('#view').innerHTML='<div class="boxes">'+n.map(()=>'<button class="box">🎁</button>').join('')+'</div>'},
+  async run(w,n){
+    const b=[...document.querySelectorAll('.box')],wi=n.indexOf(w);
+    b.forEach(x=>x.classList.add('shake'));await W(1700);b.forEach(x=>x.classList.remove('shake'));
+    for(const i of [...shuf(b.map((_,i)=>i).filter(i=>i!==wi)),wi]){
+      b[i].innerHTML='<b>'+esc(n[i].name)+'</b>';b[i].classList.add(i===wi?'win':'lose');await W(i===wi?900:650)}
+  }},
+ elim:{label:'Eleme',n:30,
+  setup(n){$('#view').innerHTML='<div class="chips">'+n.map(u=>'<span class="chip">'+esc(u.name)+'</span>').join('')+'</div>'},
+  async run(w,n){
+    const c=[...document.querySelectorAll('.chip')],wi=n.indexOf(w),o=shuf(c.map((_,i)=>i).filter(i=>i!==wi));
+    const d=Math.min(450,Math.max(110,4200/o.length));
+    for(const i of o){c[i].classList.add('out');await W(d)}
+    c[wi].classList.add('win');await W(800);
+  }},
+ scratch:{label:'Kazı kazan',n:1,
+  setup(n,w){
+    $('#view').innerHTML=`<div class="scr"><div class="under"><small>Kazanan</small><b>${w?esc(w.name):'???'}</b></div><canvas id="sc" width="640" height="300"></canvas></div>`;
+    const c=$('#sc'),x=c.getContext('2d'),g=x.createLinearGradient(0,0,640,300);
+    g.addColorStop(0,'#bfe3fa');g.addColorStop(.5,'#eef8ff');g.addColorStop(1,'#8ccaf2');
+    x.fillStyle=g;x.fillRect(0,0,640,300);x.fillStyle='#2f8bc9';x.font='700 32px "Bricolage Grotesque",sans-serif';x.textAlign='center';x.fillText('Kazımak için sürükle',320,160);
+    c.er=(px,py)=>{x.globalCompositeOperation='destination-out';x.beginPath();x.arc(px,py,28,0,7);x.fill()};
+    c.onpointermove=e=>{if(e.buttons){const r=c.getBoundingClientRect();c.er((e.clientX-r.left)*640/r.width,(e.clientY-r.top)*300/r.height)}};
+  },
+  async run(){
+    const c=$('#sc');await W(400);
+    for(let i=0;i<110;i++){c.er((i%22)*30+rnd(12),30+Math.floor(i/22)*58+rnd(24));await W(28)}
+    c.style.transition='opacity .6s';c.style.opacity=0;await W(800);
+  }}
+};
+
+function idle(){
+  const s=[...pool.values()],lm=lim();
+  const n=s.length?shuf(s).slice(0,lm):['Mavi','Bulut','Gökyüzü','Şans','Kura','Yıldız'].map(name=>({name}));
+  M[mode].setup(mode==='boxes'?[...n,...n,...n].slice(0,+S.bnum):n,null);
+}
+$('#tabs').innerHTML=Object.keys(M).map(k=>`<button data-m="${k}">${M[k].label}</button>`).join('');
+$('#tabs').onclick=e=>{const k=e.target.dataset.m;if(!k||busy)return;mode=k;
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.m===k));idle()};
+
+async function start(){
+  if(busy)return;const cnt=Math.max(1,+S.wins||1);let rest=[...pool.values()];
+  if(rest.length<Math.max(2,cnt))return toast('Çekiliş için en az '+Math.max(2,cnt)+' katılımcı gerekli');
+  busy=true;$('#go').disabled=true;const got=[];
+  for(let r=0;r<cnt;r++){
+    const w=pick(rest);rest=rest.filter(x=>x!==w);got.push(w);
+    const n=shuf([w,...shuf([...pool.values()].filter(x=>x!==w)).slice(0,Math.max(0,lim()-1))]);
+    M[mode].setup(n,w);await W(300);await M[mode].run(w,n);
+    if(r<cnt-1){toast((r+1)+'. kazanan: '+w.name);await W(1400)}
+  }
+  const t=new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+  [...got].reverse().forEach(w=>{winners.unshift({name:w.name,t});if(S.rm){pool.delete(w.name.toLowerCase());won.add(w.name.toLowerCase())}});
+  lists();$('#wl').textContent=got.length>1?'Kazananlar':'Kazanan';$('#wn').textContent=got.map(w=>w.name).join(', ');$('#modal').hidden=false;
+  for(let i=0;i<80;i++){const d=document.createElement('div');d.className='cf';
+    d.style.cssText=`left:${rnd(100)}vw;background:${['#9bd5f8','#4aa8e6','#fff','#d6eeff','#2f8bc9','#ffe08a'][rnd(6)]};animation-duration:${2+rnd(200)/100}s;animation-delay:${rnd(100)/100}s`;
+    document.body.appendChild(d);setTimeout(()=>d.remove(),5000)}
+  busy=false;$('#go').disabled=false;
+}
+$('#go').onclick=start;
+$('#ok').onclick=()=>{$('#modal').hidden=true;idle()};
+
+$('#sb').onclick=()=>$('#sm').hidden=false;$('#sx').onclick=()=>$('#sm').hidden=true;
+$('#sm').onclick=e=>{if(e.target.id==='sm')$('#sm').hidden=true};
+$('#ps').oninput=lists;$('#clr2').onclick=$('#clr').onclick;
+$('#cw').onclick=()=>{winners.length=0;won.clear();lists()};
+$('#addn').onclick=()=>{$('#addt').value.split(/\n/).map(x=>x.trim()).filter(Boolean).forEach(n=>{const k=n.toLowerCase();if(!pool.has(k))pool.set(k,{name:n,color:'#3f9fe0',sub:false})});$('#addt').value='';lists()};
+$('#dl').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([[...pool.values()].map(u=>u.name).join('\n')],{type:'text/plain'}));a.download='katilimcilar.txt';a.click()};
+apply();document.querySelector('#tabs button').classList.add('on');idle();lists();
+</script>
+</body>
+</html>
