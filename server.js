@@ -14,18 +14,45 @@ const io = new Server(server, {
     cors: { origin: "*" }
 });
 
+// Kick kanal adından ID bulma fonksiyonu (Sunucu tarafında çalışır)
+async function getChannelId(slug) {
+    const url = `https://kick.com/api/v2/channels/${slug}`;
+    try {
+        const response = await fetch(url, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+        });
+        const text = await response.text();
+        const match = text.match(/"chatroom"\s*:\s*\{[^}]*?"id"\s*:\s*(\d+)/);
+        return match ? match[1] : null;
+    } catch (e) {
+        return null;
+    }
+}
+
 io.on('connection', (socket) => {
     console.log('Bir kullanıcı bağlandı.');
     let kickWs = null;
 
-    socket.on('join-kick', (chatroomId) => {
-        console.log(`Kick chatroom dinleniyor: ${chatroomId}`);
+    socket.on('join-kick', async (slugOrId) => {
+        let chatroomId = slugOrId;
+
+        // Eğer girilen değer sayı değilse, kanal adı olarak kabul edip ID'sini bulalım
+        if (isNaN(slugOrId)) {
+            console.log(`Kanal aranıyor: ${slugOrId}`);
+            chatroomId = await getChannelId(slugOrId.toLowerCase().trim());
+        }
+
+        if (!chatroomId) {
+            socket.on('error-msg', 'Chatroom ID bulunamadı.');
+            return;
+        }
+
+        console.log(`Kick chatroom dinleniyor ID: ${chatroomId}`);
         
         if (kickWs) {
             kickWs.close();
         }
 
-        // Kick WebSocket bağlantısı (Sunucu tarafında olduğu için CORS takılmaz)
         kickWs = new WebSocket('wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=8.4.0-rc2&flash=false');
 
         kickWs.on('open', () => {
@@ -40,22 +67,16 @@ io.on('connection', (socket) => {
                 const parsed = JSON.parse(data);
                 if (/ChatMessageEvent$/.test(parsed.event)) {
                     const chatData = typeof parsed.data === 'string' ? JSON.parse(parsed.data) : parsed.data;
-                    // Sitedeki herkese bu mesajı ilet
                     io.emit('chat-message', chatData);
                 }
-            } catch (e) {
-                console.log('Mesaj işleme hatası:', e);
-            }
+            } catch (e) {}
         });
 
-        kickWs.on('close', () => {
-            console.log('Kick bağlantısı kapandı.');
-        });
+        kickWs.on('close', () => {});
     });
 
     socket.on('disconnect', () => {
         if (kickWs) kickWs.close();
-        console.log('Bir kullanıcı ayrıldı.');
     });
 });
 

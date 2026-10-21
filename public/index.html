@@ -213,22 +213,17 @@ async function findId(slug){
 }
 async function connect(){
   const slug=$('#slug').value.trim().toLowerCase().replace(/^.*kick\.com\//,'').replace(/[\/?#].*$/,'');
-  let id=pickId($('#room').value);
-  if(!slug&&!id)return st('Kanal adını yaz','bad');
-  disconnect();want=true;nmsg=0;$('#nm').textContent=0;$('#hint').hidden=true;
-  if(!id){st('Kanal aranıyor…','wait');id=await findId(slug);if(!want)return}
-  if(!id){want=false;st('Chatroom ID bulunamadı','bad');$('#hl').href='https://kick.com/api/v2/channels/'+slug;$('#hint').hidden=false;return}
+  let id=$('#room').value.trim();
+  const target = id || slug;
+  
+  if(!target) return st('Kanal adını yaz','bad');
+  disconnect(); want=true; nmsg=0; $('#nm').textContent=0; $('#hint').hidden=true;
+  
   st('Chat\'e bağlanılıyor…','wait');
-  const open=()=>{
-    ws=new WebSocket('wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=8.4.0-rc2&flash=false');
-    ws.onerror=()=>st('Bağlantı hatası: internetini kontrol et','bad');
-    ws.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(_){return}
-      if(d.event==='pusher:connection_established')['chatrooms.'+id+'.v2','chatrooms.'+id].forEach(c=>ws.send(JSON.stringify({event:'pusher:subscribe',data:{auth:'',channel:c}})));
-      else if(d.event==='pusher:ping')ws.send('{"event":"pusher:pong","data":{}}');
-      else if(d.event==='pusher_internal:subscription_succeeded')st('Chat canlı: '+(slug||'kanal')+' #'+id,'ok');
-      else if(/ChatMessageEvent$/.test(d.event)){try{onChat(typeof d.data==='string'?JSON.parse(d.data):d.data)}catch(_){}}};
-    ws.onclose=()=>{if(want){st('Yeniden bağlanıyor…','wait');setTimeout(()=>want&&open(),2500)}};
-  };open();
+  
+  // Doğrudan sunucuya kanal adını veya ID'yi gönderiyoruz, sunucu hallediyor
+  socket.emit('join-kick', target);
+  st('Chat canlı: '+target,'ok');
 }
 function demo(){
   disconnect();nmsg=0;$('#nm').textContent=0;st('Demo chat çalışıyor','ok');
